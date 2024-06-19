@@ -57,7 +57,17 @@ print("Skrzynka e-mail w serwisie CRUD.pl")
 print('-----------------------------')
 
 while True:
-    selection=int(input('1-Zakładanie Konta, 2-Logowanie, 3-Zmiana Hasła, 4-Usuwanie Konta'))
+    while True:
+        try:
+            selection=int(input('1-Zakładanie Konta, 2-Logowanie, 3-Zmiana Hasła, 4-Usuwanie Konta'))
+            if 5 > selection > 0:
+                break
+            else:
+                print("Proszę podać cyfrę od 1 do 4")
+                continue     
+        except:
+            print("Proszę podać cyfrę")
+            continue
 
     if selection==1:
         email=str(input('Proszę utworzyć login e-maila np. "jan" = jan@CRUD.pl'))  + str('@CRUD.pl')
