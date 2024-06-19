@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS additionalData (
 );
 '''
 
+
 #nazwa pliku z bazą danych
 db_file="emails.db"
 
@@ -133,7 +134,7 @@ while True:
             cur.execute(sql,additionalData)
             conn.commit()
             return cur.lastrowid
-
+        
 
         conn = create_connection("emails.db")
         #krotka z danymi do wprowadzenia do tabeli accounts
@@ -166,10 +167,24 @@ while True:
         cur.execute(f''' UPDATE accounts 
                         SET password = "{passId}{password}"
                         WHERE id = "{passId}"''')
-        conn.commit()
-        conn.close
+        
+        conn.commit()        
+        conn.close 
 
+        #tworzenie tabeli do wiadomości
+        cur.execute(f'''CREATE TABLE IF NOT EXISTS {email1} (
+                    id integer PRIMARY KEY,
+                    messageData_id integer NOT NULL,
+                    'from' TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    FOREIGN KEY (messageData_id) REFERENCES accounts (id)
+                    );
+                    ''')
+        print(f'Utworzono tabelę na wiadomości dla {email}')
         print(f'Utworzono nowe konto e-mail: {email}')
+
+        conn.commit()        
+        conn.close
 
     def loginCode():
         while True:
@@ -215,7 +230,51 @@ while True:
         return login,passwordMatch,findLogin
 
     if selection==2:
-        loginCode()
+        accountData=loginCode()
+        passwordMatch=accountData[1]
+        login=accountData[0]
+        findLogin=accountData[2]
+        login2=login.replace('@CRUD.pl','')
+        cur=conn.cursor()
+        cur.execute(f"SELECT * FROM {login2}")
+        messages=cur.fetchall()
+        print('Skrzynka odbiorcza')
+        print(messages)
+        print('==============================================')
+
+        while True:
+            #wprowadzenie loginu
+            address1=str(input('Proszę podać adres na który chcesz wysłać wiadomość:'))
+            address2=address1.replace('@CRUD.pl','')
+            address=address2.lower()
+            #szukanie pozycji na której jest login w bazie danych (w tabeli accounts)
+            conn = create_connection("emails.db")
+            cur= conn.cursor()
+            cur.execute(f"SELECT * FROM accounts WHERE email = '{address1}'")
+            try:
+                #wyciąganie wartości liczbowej pozycji na której jest login 
+                findLogin=cur.fetchone()[0]
+                conn.close
+                print(f'Znaleziono adres {address1}')
+                break
+            except:
+                #jeśli nie znaleziono podanego loginu w bazie danych
+                findLogin='NotFind'
+                print('Nie znaleziono takiego adresu!')
+                continue     
+        print(f'Proszę podać tekst wiadomości do {address1}')
+        
+        message=str(input(''))
+        conn = create_connection("emails.db")
+        cur= conn.cursor()
+        sql=(f'''INSERT INTO {address}(messageData_id, 'from', message)
+                VALUES (?,?,?);''')
+        addMessage=(1,login,message)
+        cur = conn.cursor()
+        cur.execute(sql,addMessage)
+        conn.commit()
+        conn.close       
+
 
     if selection==3:
         accountData=loginCode()
@@ -249,16 +308,19 @@ while True:
         passwordMatch=accountData[1]
         login=accountData[0]
         findLogin=accountData[2]
+        login2=login.replace('@CRUD.pl','')
 
         while True:
             #jeśli znaleziony login i hasło są na tej samej pozycji
             if findLogin == passwordMatch:
                 accountDelete=str(input(f'Jeśli na pewno chcesz usunąć konto {login}, wpisz Tak:'))
+                
                 if accountDelete=='Tak':
                     conn = create_connection("emails.db")
                     cur= conn.cursor()
                     cur.execute(f"DELETE FROM accounts WHERE id = '{passwordMatch}'")
                     cur.execute(f"DELETE FROM additionalData WHERE id ='{passwordMatch}'")
+                    cur.execute(f"DROP TABLE {login2}")
                     conn.commit()   
                     conn.close 
                     print(f'Usunięto konto {login}')
