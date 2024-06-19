@@ -9,7 +9,7 @@ def create_connection(db_file):
         conn = sqlite3.connect(db_file)
         print(f"Połączono z bazą danych {db_file}")
     except Error as e:
-        print(e)    
+        print(e)   
     return conn
 
 #funkcja wykonująca skrypt sql dla tworzenia tabel
@@ -60,27 +60,26 @@ if conn is not None:
     print('Utworzono tabelę na dane dodatkowe')
     conn.close
 
-print('-----------------------------')
-print("Skrzynka e-mail w serwisie CRUD.pl")
-print('-----------------------------')
-
 #wprowadzanie informacji przez użytkownika
 while True:
+    print('----------------------------------')
+    print("Skrzynka e-mail w serwisie CRUD.pl")
+    print('----------------------------------')
     while True:
         try:
-            selection=int(input('1-Zakładanie Konta, 2-Logowanie, 3-Zmiana Hasła, 4-Usuwanie Konta'))
+            selection=int(input('1-Zakładanie Konta, 2-Logowanie, 3-Zmiana Hasła, 4-Usuwanie Konta:'))
             if 5 > selection > 0:
                 break
             else:
-                print("Proszę podać cyfrę od 1 do 4")
+                print("Proszę podać cyfrę od 1 do 4:")
                 continue     
         except:
-            print("Proszę podać cyfrę")
+            print("Proszę podać cyfrę:")
             continue
 
     if selection==1:
         while True:
-            email1=(str(input('Proszę utworzyć login e-maila np. "jan" = jan@CRUD.pl'))).lower() 
+            email1=(str(input('Proszę utworzyć login e-maila np. "jan" = jan@CRUD.pl:'))).lower() 
             mistake=email1.find('@')
             if mistake !=-1:
                 print("Niedozwolony znak @!")
@@ -91,6 +90,7 @@ while True:
             conn = create_connection("emails.db")
             cur= conn.cursor()
             cur.execute(f"SELECT * FROM accounts WHERE email = '{email}'")
+            conn.close 
             try:
                 #wyciąganie wartości liczbowej pozycji na której jest login 
                 findLogin=cur.fetchone()[0]
@@ -101,18 +101,18 @@ while True:
                 findLogin='NotFind'
                 print('adres e-mail jest wolny!')
 
-            name=str(input('Proszę podać imię'))
-            surname=str(input('Proszę podać nazwisko'))
-            birthDate=str(input('Proszę podać datę urodzenia'))
+            name=str(input('Proszę podać imię:'))
+            surname=str(input('Proszę podać nazwisko:'))
+            birthDate=str(input('Proszę podać datę urodzenia:'))
             break       
         
         while True:
-            password=str(input('Proszę utworzyć hasło'))
-            password2=str(input('Proszę potwierdzić hasło'))
+            password=str(input('Proszę utworzyć hasło:'))
+            password2=str(input('Proszę potwierdzić hasło:'))
             if password==password2:
                 break
             else:
-                print('hasła się nie zgadzają')
+                print('Hasła się nie zgadzają')
                 continue
         dateCreated=date.today()
 
@@ -167,13 +167,14 @@ while True:
                         SET password = "{passId}{password}"
                         WHERE id = "{passId}"''')
         conn.commit()
+        conn.close
 
         print(f'Utworzono nowe konto e-mail: {email}')
 
     def loginCode():
         while True:
             #wprowadzenie loginu
-            login=str(input('Proszę podać login np. "jan" dla adresu jan@CRUD.pl')).lower() + str('@CRUD.pl')
+            login=str(input('Proszę podać login np. "jan" dla adresu jan@CRUD.pl:')).lower() + str('@CRUD.pl')
             #szukanie pozycji na której jest login w bazie danych (w tabeli accounts)
             conn = create_connection("emails.db")
             cur= conn.cursor()
@@ -181,6 +182,7 @@ while True:
             try:
                 #wyciąganie wartości liczbowej pozycji na której jest login 
                 findLogin=cur.fetchone()[0]
+                conn.close
                 break
             except:
                 #jeśli nie znaleziono podanego loginu w bazie danych
@@ -190,7 +192,7 @@ while True:
 
         while True:
             #jeśli znaleziono login program prosi o hasło
-            if findLogin is not 'NotFind':
+            if findLogin != 'NotFind':
                 print(f'Znaleziono login {login} na pozycji {findLogin}')
                 print(f'Proszę podać hasło dla adresu {login}:')
                 passwordCheck=str(input())
@@ -199,6 +201,7 @@ while True:
                 cur.execute(f"SELECT * FROM accounts WHERE password = '{findLogin}{passwordCheck}'")
                 try:
                     passwordMatch=cur.fetchone()[0]
+                    conn.close
                     break
                 except:
                     passwordMatch='NotFind'
@@ -223,8 +226,8 @@ while True:
         while True:
             #jeśli znaleziony login i hasło są na tej samej pozycji
             if findLogin == passwordMatch:
-                newPassword=str(input(f'Proszę podać nowe hasło dla {login}!'))
-                newPassword2=str(input(f'Proszę powtórzyć nowe hasło dla {login}!')) 
+                newPassword=str(input(f'Proszę podać nowe hasło dla {login}!:'))
+                newPassword2=str(input(f'Proszę powtórzyć nowe hasło dla {login}!:')) 
                 if newPassword==newPassword2:
                     conn = create_connection("emails.db")
                     cur= conn.cursor()
@@ -232,6 +235,7 @@ while True:
                         SET password = "{findLogin}{newPassword}"
                         WHERE id = "{findLogin}"''')
                     conn.commit()
+                    conn.close()
                     print(f'Hasło dla {login} zostało zmienione')
                     break
                 else:
@@ -249,13 +253,14 @@ while True:
         while True:
             #jeśli znaleziony login i hasło są na tej samej pozycji
             if findLogin == passwordMatch:
-                accountDelete=str(input(f'Jeśli na pewno chcesz usunąć konto {login}?, wpisz Tak'))
+                accountDelete=str(input(f'Jeśli na pewno chcesz usunąć konto {login}, wpisz Tak:'))
                 if accountDelete=='Tak':
                     conn = create_connection("emails.db")
                     cur= conn.cursor()
                     cur.execute(f"DELETE FROM accounts WHERE id = '{passwordMatch}'")
                     cur.execute(f"DELETE FROM additionalData WHERE id ='{passwordMatch}'")
-                    conn.commit()    
+                    conn.commit()   
+                    conn.close 
                     print(f'Usunięto konto {login}')
                     break
                 else:
