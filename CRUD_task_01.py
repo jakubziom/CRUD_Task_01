@@ -128,9 +128,10 @@ while True:
             conn.commit()
             return cur.lastrowid
 
+
         conn = create_connection("emails.db")
         #krotka z danymi do wprowadzenia do tabeli accounts
-        account=(email,password, birthDate, dateCreated)
+        account=(email,str(cur.lastrowid+1)+password, birthDate, dateCreated)
         pr_id = add_accountData(conn,account)
 
         conn = create_connection("emails.db")
@@ -144,12 +145,22 @@ while True:
             execute_sql(conn, str(account))
             execute_sql(conn, str(additionalData))
             conn.close
-        
-        #tutaj chciałbym dodać znacznik do hasła, żeby każde było niepowtarzalne
-        #wtedy program działałby poprawnie przy powtarzającyh się hasłach
-        #chciałbym też nie pozwolić na zrobienie dwóch takich samych e-maili
 
-
+        #wyciąganie ID żeby zrobić niepowtarzalne hasła:
+        conn = create_connection("emails.db")
+        cur= conn.cursor()
+        cur.execute(f"SELECT * FROM accounts WHERE email = '{email}'")
+        try:
+            #wyciąganie wartości liczbowej pozycji na której jest hasło 
+            passId=cur.fetchone()[0]
+        except:
+            #jeśli nie znaleziono podanego loginu w bazie danych
+            passId='NotFind'
+        #dodawanie id przed hasłem, żeby się nie powtarzały
+        cur.execute(f''' UPDATE accounts 
+                        SET password = "{passId}{password}"
+                        WHERE id = "{passId}"''')
+        conn.commit()
 
         print(f'Utworzono nowe konto e-mail: {email}')
 
@@ -179,7 +190,7 @@ while True:
                 passwordCheck=str(input())
                 conn = create_connection("emails.db")
                 cur= conn.cursor()
-                cur.execute(f"SELECT * FROM accounts WHERE password = '{passwordCheck}'")
+                cur.execute(f"SELECT * FROM accounts WHERE password = '{findLogin}{passwordCheck}'")
                 try:
                     passwordMatch=cur.fetchone()[0]
                     break
@@ -192,9 +203,7 @@ while True:
             print(f'Zalogowano poprawnie do adresu {login}!')
         else: 
             print('Błędne hasło, proszę spróbować ponownie!')
-
         return login,passwordMatch,findLogin
-
 
     if selection==2:
         loginCode()
@@ -214,8 +223,8 @@ while True:
                     conn = create_connection("emails.db")
                     cur= conn.cursor()
                     cur.execute(f''' UPDATE accounts 
-                        SET password = "{newPassword}"
-                        WHERE id = "{passwordMatch}"''')
+                        SET password = "{findLogin}{newPassword}"
+                        WHERE id = "{findLogin}"''')
                     conn.commit()
                     print(f'Hasło dla {login} zostało zmienione')
                     break
