@@ -104,7 +104,7 @@ while True:
             execute_sql(conn, str(additionalData))
             conn.close
         
-        print(f'Uworzono nowe konto e-mail: {email}')
+        print(f'Utworzono nowe konto e-mail: {email}')
 
     def loginCode():
         while True:
