@@ -274,6 +274,7 @@ while True:
         cur.execute(sql,addMessage)
         conn.commit()
         conn.close       
+        print(f"Wysłano wiadomość do {address}@CRUD.pl")
 
 
     if selection==3:
