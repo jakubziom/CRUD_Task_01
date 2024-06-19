@@ -80,8 +80,14 @@ while True:
 
     if selection==1:
         while True:
-            email=str(input('Proszę utworzyć login e-maila np. "jan" = jan@CRUD.pl'))  + str('@CRUD.pl')
-            
+            email1=(str(input('Proszę utworzyć login e-maila np. "jan" = jan@CRUD.pl'))).lower() 
+            mistake=email1.find('@')
+            if mistake !=-1:
+                print("Niedozwolony znak @!")
+                continue
+            else:
+                pass
+            email=email1 + str('@CRUD.pl')    
             conn = create_connection("emails.db")
             cur= conn.cursor()
             cur.execute(f"SELECT * FROM accounts WHERE email = '{email}'")
@@ -167,7 +173,7 @@ while True:
     def loginCode():
         while True:
             #wprowadzenie loginu
-            login=str(input('Proszę podać login np. "jan" dla adresu jan@CRUD.pl')) + str('@CRUD.pl')
+            login=str(input('Proszę podać login np. "jan" dla adresu jan@CRUD.pl')).lower() + str('@CRUD.pl')
             #szukanie pozycji na której jest login w bazie danych (w tabeli accounts)
             conn = create_connection("emails.db")
             cur= conn.cursor()
