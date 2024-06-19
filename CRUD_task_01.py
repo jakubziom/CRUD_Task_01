@@ -2,16 +2,17 @@ from datetime import date
 import sqlite3
 from sqlite3 import Error
 
+#funkcja nawiązująca połączenie z plikiem bazy danych
 def create_connection(db_file):
     conn=None
     try:
         conn = sqlite3.connect(db_file)
         print(f"Połączono z bazą danych {db_file}")
     except Error as e:
-        print(e)
-
+        print(e)    
     return conn
 
+#funkcja wykonująca skrypt sql dla tworzenia tabel
 def execute_sql(conn,sql):
     try:
         c=conn.cursor()
@@ -19,9 +20,11 @@ def execute_sql(conn,sql):
     except Error as e:
         print(e)
 
+#tworzenie pliku z bazą danych
 if __name__ == '__main__':
     create_connection(r"emails.db")
 
+#tworzenie tabeli accounts
 create_accounts_sql = '''
 CREATE TABLE IF NOT EXISTS accounts (
     id integer PRIMARY KEY,
@@ -32,6 +35,7 @@ CREATE TABLE IF NOT EXISTS accounts (
 );
 '''
 
+#tworzenie tabeli z imionami i nazwiskami
 create_additionalData_sql = '''
 CREATE TABLE IF NOT EXISTS additionalData (
     id integer PRIMARY KEY,
@@ -42,12 +46,16 @@ CREATE TABLE IF NOT EXISTS additionalData (
 );
 '''
 
+#nazwa pliku z bazą danych
 db_file="emails.db"
+
 
 conn = create_connection(db_file)
 if conn is not None:
+    #tworzenie tabeli accounts
     execute_sql(conn, create_accounts_sql)
     print('Utworzono tabelę na dane kont')
+    #tworzenie tabeli z imionami i nazwiskami
     execute_sql(conn, create_additionalData_sql)
     print('Utworzono tabelę na dane dodatkowe')
     conn.close
@@ -56,6 +64,7 @@ print('-----------------------------')
 print("Skrzynka e-mail w serwisie CRUD.pl")
 print('-----------------------------')
 
+#wprowadzanie informacji przez użytkownika
 while True:
     while True:
         try:
@@ -84,6 +93,7 @@ while True:
                 continue
         dateCreated=date.today()
 
+        #dodawanie wcześniej wprowadzonych danych do tabeli accounts
         def add_accountData(conn,account):
             sql= '''INSERT INTO accounts(email, password, birthDate, dateCreated)
                 VALUES (?,?,?,?);'''
@@ -92,6 +102,7 @@ while True:
             conn.commit()
             return cur.lastrowid
 
+        #dodawanie wcześniej wprowadzonych danych do tabeli z imionami i nazwiskami
         def add_additionalData(conn,additionalData):
             sql= '''INSERT INTO additionalData(additionalData_id, name, surname)
                 VALUES (?,?,?);'''
@@ -101,15 +112,18 @@ while True:
             return cur.lastrowid
 
         conn = create_connection("emails.db")
+        #krotka z danymi do wprowadzenia do tabeli accounts
         account=(email,password, birthDate, dateCreated)
         pr_id = add_accountData(conn,account)
 
         conn = create_connection("emails.db")
+        #krotka z imionami i nazwiskami
         additionalData=(1,name,surname)
         pr_id = add_additionalData(conn,additionalData)
 
         conn = create_connection(db_file)
         if conn is not None:
+            #inny rodzaj zapisu do wykonywania skryptu *zrobione funkcją execute_sql
             execute_sql(conn, str(account))
             execute_sql(conn, str(additionalData))
             conn.close
@@ -118,19 +132,24 @@ while True:
 
     def loginCode():
         while True:
+            #wprowadzenie loginu
             login=str(input('Proszę podać login np. "jan" dla adresu jan@CRUD.pl')) + str('@CRUD.pl')
+            #szukanie pozycji na której jest login w bazie danych (w tabeli accounts)
             conn = create_connection("emails.db")
             cur= conn.cursor()
             cur.execute(f"SELECT * FROM accounts WHERE email = '{login}'")
             try:
+                #wyciąganie wartości liczbowej pozycji na której jest login 
                 findLogin=cur.fetchone()[0]
                 break
             except:
+                #jeśli nie znaleziono podanego loginu w bazie danych
                 findLogin='NotFind'
                 print('Nie znaleziono takiego loginu!')
                 continue
 
         while True:
+            #jeśli znaleziono login program prosi o hasło
             if findLogin is not 'NotFind':
                 print(f'Znaleziono login {login} na pozycji {findLogin}')
                 print(f'Proszę podać hasło dla adresu {login}:')
@@ -140,14 +159,17 @@ while True:
                 cur.execute(f"SELECT * FROM accounts WHERE password = '{passwordCheck}'")
                 try:
                     passwordMatch=cur.fetchone()[0]
-                    print(f'Zalogowano poprawnie do adresu {login}!')
                     break
                 except:
                     passwordMatch='NotFind'
                     print('Błędne hasło, proszę spróbować ponownie!')
                     continue
+        if findLogin == passwordMatch:
+            print(f'Zalogowano poprawnie do adresu {login}!')
+        else: 
+            print('Błędne hasło, proszę spróbować ponownie!')
 
-        return login,passwordMatch
+        return login,passwordMatch,findLogin
 
 
     if selection==2:
@@ -157,9 +179,10 @@ while True:
         accountData=loginCode()
         passwordMatch=accountData[1]
         login=accountData[0]
+        findLogin=accountData[2]
 
         while True:
-            if passwordMatch is not 'NotFind':
+            if findLogin == passwordMatch:
                 newPassword=str(input(f'Proszę podać nowe hasło dla {login}!'))
                 newPassword2=str(input(f'Proszę powtórzyć nowe hasło dla {login}!')) 
                 if newPassword==newPassword2:
@@ -174,14 +197,17 @@ while True:
                 else:
                     print('Hasła się nie zgadzają!')
                     continue
+            else:
+                break
 
     if selection==4:
         accountData=loginCode()
         passwordMatch=accountData[1]
         login=accountData[0]
+        findLogin=accountData[2]
 
         while True:
-            if passwordMatch is not 'NotFind':
+            if findLogin == passwordMatch:
                 accountDelete=str(input(f'Jeśli na pewno chcesz usunąć konto {login}?, wpisz Tak'))
                 if accountDelete=='Tak':
                     conn = create_connection("emails.db")
@@ -193,6 +219,8 @@ while True:
                     break
                 else:
                     break
+            else:
+                break
 
 
 
