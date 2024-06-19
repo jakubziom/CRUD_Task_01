@@ -79,10 +79,27 @@ while True:
             continue
 
     if selection==1:
-        email=str(input('Proszę utworzyć login e-maila np. "jan" = jan@CRUD.pl'))  + str('@CRUD.pl')
-        name=str(input('Proszę podać imię'))
-        surname=str(input('Proszę podać nazwisko'))
-        birthDate=str(input('Proszę podać datę urodzenia'))
+        while True:
+            email=str(input('Proszę utworzyć login e-maila np. "jan" = jan@CRUD.pl'))  + str('@CRUD.pl')
+            
+            conn = create_connection("emails.db")
+            cur= conn.cursor()
+            cur.execute(f"SELECT * FROM accounts WHERE email = '{email}'")
+            try:
+                #wyciąganie wartości liczbowej pozycji na której jest login 
+                findLogin=cur.fetchone()[0]
+                print('adres e-mail jest zajęty!')
+                continue
+            except:
+                #jeśli nie znaleziono podanego loginu w bazie danych
+                findLogin='NotFind'
+                print('adres e-mail jest wolny!')
+
+            name=str(input('Proszę podać imię'))
+            surname=str(input('Proszę podać nazwisko'))
+            birthDate=str(input('Proszę podać datę urodzenia'))
+            break       
+        
         while True:
             password=str(input('Proszę utworzyć hasło'))
             password2=str(input('Proszę potwierdzić hasło'))
@@ -128,6 +145,12 @@ while True:
             execute_sql(conn, str(additionalData))
             conn.close
         
+        #tutaj chciałbym dodać znacznik do hasła, żeby każde było niepowtarzalne
+        #wtedy program działałby poprawnie przy powtarzającyh się hasłach
+        #chciałbym też nie pozwolić na zrobienie dwóch takich samych e-maili
+
+
+
         print(f'Utworzono nowe konto e-mail: {email}')
 
     def loginCode():
@@ -164,6 +187,7 @@ while True:
                     passwordMatch='NotFind'
                     print('Błędne hasło, proszę spróbować ponownie!')
                     continue
+        #jeśli login i znalezione hasło są na tej samej pozycji
         if findLogin == passwordMatch:
             print(f'Zalogowano poprawnie do adresu {login}!')
         else: 
@@ -182,6 +206,7 @@ while True:
         findLogin=accountData[2]
 
         while True:
+            #jeśli znaleziony login i hasło są na tej samej pozycji
             if findLogin == passwordMatch:
                 newPassword=str(input(f'Proszę podać nowe hasło dla {login}!'))
                 newPassword2=str(input(f'Proszę powtórzyć nowe hasło dla {login}!')) 
@@ -207,6 +232,7 @@ while True:
         findLogin=accountData[2]
 
         while True:
+            #jeśli znaleziony login i hasło są na tej samej pozycji
             if findLogin == passwordMatch:
                 accountDelete=str(input(f'Jeśli na pewno chcesz usunąć konto {login}?, wpisz Tak'))
                 if accountDelete=='Tak':
