@@ -82,7 +82,6 @@ while True:
             conn.commit()
             return cur.lastrowid
 
-
         def add_additionalData(conn,additionalData):
             sql= '''INSERT INTO additionalData(additionalData_id, name, surname)
                 VALUES (?,?,?);'''
@@ -104,6 +103,8 @@ while True:
             execute_sql(conn, str(account))
             execute_sql(conn, str(additionalData))
             conn.close
+        
+        print(f'Uworzono nowe konto e-mail: {email}')
 
     def loginCode():
         while True:
