@@ -239,7 +239,12 @@ while True:
         cur.execute(f"SELECT * FROM {login2}")
         messages=cur.fetchall()
         print('Skrzynka odbiorcza')
-        print(messages)
+        print('==================')
+        for messageBlock in messages:
+            print('Od:')
+            print(messageBlock[2]+':')
+            print(messageBlock[3])
+            print('-----------------')
         print('==============================================')
 
         while True:
