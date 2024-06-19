@@ -137,7 +137,7 @@ while True:
 
         conn = create_connection("emails.db")
         #krotka z danymi do wprowadzenia do tabeli accounts
-        account=(email,str(cur.lastrowid+1)+password, birthDate, dateCreated)
+        account=(email,password, birthDate, dateCreated)
         pr_id = add_accountData(conn,account)
 
         conn = create_connection("emails.db")
